@@ -98,6 +98,7 @@ export class ProtoDef {
     read(buffer: Buffer, cursor: number, _fieldInfo, rootNodes, history: any[]) {
         const { type, typeArgs } = getFieldInfo(_fieldInfo)
         const typeFunctions = this.types[type]
+        console.log('this.types', this.types)
         if (!typeFunctions) { throw new Error('missing data type: ' + type) }
         const data = typeFunctions[0].call(this, buffer, cursor, typeArgs, rootNodes, history)
         return data

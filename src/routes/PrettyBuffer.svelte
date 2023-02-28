@@ -11,7 +11,7 @@
 	{@const endOffset = history
 		.slice()
 		.reverse()
-		.find((i) => i.end?.offset).end.offset}
+		.find((i) => i.end?.offset)?.end?.offset}
 	{@const type = item.type}
 	{#if type === 'scope'}
 		{@const error = item.end?.offset === undefined || item.data?.offset === undefined}
@@ -24,7 +24,11 @@
 		{@const itemStartHue = error ? undefined : startHue + (endHue - startHue) * percentStart}
 		{@const itemEndHue = error ? undefined : startHue + (endHue - startHue) * percentEnd}
 		{@const width = error ? undefined : item.end.offset - item.data.offset}
-		<span class="part-container" style={error ? 'display: inline-flex;' : `--width: ${width}`}>
+		<span
+			class="part-container"
+			style={error ? 'display: inline-flex;' : `--width: ${width}`}
+			class:comment={width === 0}
+		>
 			<div class="part">
 				<div
 					class="part-content-container"
@@ -37,7 +41,10 @@
 							<b>{item.data.name}</b>
 						{/if}
 						{#if item.data?.type && (!item.inner || item.inner[0].type === 'scope')}
-							<div class="type">{item.data.type}</div>
+							<div class="type">
+								{item.data.type}
+								{#if item.data.inner_type}({item.data.inner_type}){/if}
+							</div>
 						{/if}
 						{#if item.end?.value !== undefined}
 							<i>{JSON.stringify(item.end?.value)}</i>
@@ -69,5 +76,10 @@
 	}
 	.part-content-container {
 		border: 1px solid #000;
+	}
+
+	.comment {
+		overflow: none;
+		opacity: 0.5;
 	}
 </style>

@@ -2,20 +2,29 @@
 	import '../app.css'
 
 	import { userInputToBuffer } from './parse'
-	import { ProtoDefCompiler } from './protodef/compiler'
 	import { Parser, ProtoDef } from './protodef/index'
 	import * as compilerMinecraftTypes from './minecraft-datatypes/compiler-minecraft'
+	import * as minecraftTypes from './minecraft-datatypes/minecraft'
 	import { Buffer } from 'buffer'
 
 	import protocol from './protocol.json'
 	import PrettyBuffer from './PrettyBuffer.svelte'
 
-	// let userInput = '0x00 0x01 0x00 0x00 0x01 0x01'
-	// let userInput = '0x00 0x00 0x00 0x01 0x01'
-	let userInput =
-		'0x00, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x07, 0x6d, 0x61, 0x73, 0x73, 0x63, 0x61, 0x6e, 0x00, 0x00, 0x01'
+	type State = 'handshaking' | 'status' | 'login' | 'play'
+	type Direction = 'toServer' | 'toClient'
+
+	// handshake toserver
 	// let userInput =
-	// 	'0x00, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x07, 0x6d, 0x61, 0x73, 0x73, 0x63, 0x61, 0x6e, 0x00, 0x00'
+	// 	'0x00, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x07, 0x6d, 0x61, 0x73, 0x73, 0x63, 0x61, 0x6e, 0x00, 0x00, 0x01'
+	// let userInput = '0x05 1 65 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 0 1 1 0 1'
+	// let userInput = '0x05 1 65 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 1 1 1'
+
+	let userInput = ''
+
+	let state: State = 'handshaking'
+	// let state: State = 'play'
+	let direction: Direction = 'toServer'
+
 	let buffer: Uint8Array
 	let invalidBufferError: string | undefined
 	$: {
@@ -27,23 +36,9 @@
 		}
 	}
 
-	type State = 'handshaking' | 'status' | 'login' | 'play'
-	type Direction = 'toServer' | 'toClient'
-
-	let state: State = 'handshaking'
-
-	function createProtocol(state: State, direction: Direction, version: string, compiled: boolean) {
-		if (compiled) {
-			const compiler = new ProtoDefCompiler()
-			compiler.addTypes(compilerMinecraftTypes)
-			compiler.addProtocol(protocol, [state, direction])
-			const proto = compiler.compileProtoDefSync()
-			// protocols[key] = proto
-			return proto
-		}
-
+	function createProtocol(state: State, direction: Direction, version: string) {
 		const proto = new ProtoDef(false)
-		proto.addTypes(compilerMinecraftTypes)
+		proto.addTypes(minecraftTypes)
 		proto.addProtocol(protocol, [state, direction])
 		// protocols[key] = proto
 		return proto
@@ -52,20 +47,18 @@
 	function createDeserializer({
 		state,
 		direction,
-		version,
-		compiled = false
+		version
 	}: {
 		state: State
 		direction: Direction
 		version: string
-		compiled?: boolean
 	}) {
-		return new Parser(createProtocol(state, direction, version, compiled), 'packet')
+		return new Parser(createProtocol(state, direction, version), 'packet')
 	}
 
 	$: deserializer = createDeserializer({
 		state,
-		direction: 'toServer',
+		direction,
 		version: '1.19.3'
 	})
 
@@ -109,8 +102,13 @@
 	<option value="login">Login</option>
 	<option value="play">Play</option>
 </select>
+<label for="direction">Direction</label>
+<select name="direction" bind:value={direction}>
+	<option value="toServer">Serverbound</option>
+	<option value="toClient">Clientbound</option>
+</select>
 
-<input id="input-buffer" bind:value={userInput} />
+<input id="input-buffer" bind:value={userInput} placeholder="Your buffer" />
 {#if invalidBufferError}
 	{invalidBufferError}
 {/if}
@@ -126,14 +124,14 @@
 	</div>
 </div>
 
-<p>
+<!-- <p>
 	<code>
 		<pre>
 {JSON.stringify(history, null, 2)}
 
 		</pre>
 	</code>
-</p>
+</p> -->
 {#if data.data}
 	<p>
 		<code>

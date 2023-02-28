@@ -40,12 +40,12 @@ function readContainer(buffer, offset, typeArgs, context, history: any[]) {
         size: 0
     }
     typeArgs.forEach(({ type, name, anon }) => {
-        // let typeName = Array.isArray(type) ? (type[1]?.type ?? type[0]) : type
-        let typeName = Array.isArray(type) ? type[0] : type
+        const innerTypeName = Array.isArray(type) ? (type[1]?.type ?? type[0]) : type
+        const typeName = Array.isArray(type) ? type[0] : type
 
         history.push({
             type: 'scope_start',
-            data: { name, offset, type: typeName }
+            data: { name, offset, type: typeName, inner_type: typeName !== innerTypeName ? innerTypeName : undefined }
         })
         tryDoc(() => {
             const readResults = this.read(buffer, offset, type, results.value, history)
@@ -61,7 +61,7 @@ function readContainer(buffer, offset, typeArgs, context, history: any[]) {
             console.log(type, 'value', readResults)
             history.push({
                 type: 'scope_end',
-                data: /varint|[ui]\d+|string|mapper/.test(typeName)
+                data: /varint|[ui]\d+|string/.test(innerTypeName)
                     ? { offset, value: readResults.value }
                     : { offset }
             })

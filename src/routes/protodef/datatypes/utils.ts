@@ -154,8 +154,16 @@ function writeBool(value, buffer, offset) {
     return offset + 1
 }
 
-function readBuffer(buffer, offset, typeArgs, rootNode) {
+function readBuffer(buffer, offset, typeArgs, rootNode, history: any[]) {
+    history.push({
+        type: 'scope_start',
+        data: { name: 'length', offset, type: typeArgs.countType }
+    })
     const { size, count } = getCount.call(this, buffer, offset, typeArgs, rootNode)
+    history.push({
+        type: 'scope_end',
+        data: { offset: offset + size, value: count }
+    })
     offset += size
     if (offset + count > buffer.length) throw new PartialReadError()
     return {

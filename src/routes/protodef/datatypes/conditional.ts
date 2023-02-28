@@ -51,11 +51,11 @@ function sizeOfSwitch(value, { compareTo, fields, compareToValue, default: defVa
     return tryDoc(() => this.sizeOf(value, fieldInfo, rootNode), caseDefault ? 'default' : compareTo)
 }
 
-function readOption(buffer, offset, typeArgs, context) {
+function readOption(buffer, offset, typeArgs, context, history: any[]) {
     if (buffer.length < offset + 1) { throw new PartialReadError() }
     const val = buffer.readUInt8(offset++)
     if (val !== 0) {
-        const retval = this.read(buffer, offset, typeArgs, context)
+        const retval = this.read(buffer, offset, typeArgs, context, history)
         retval.size++
         return retval
     } else { return { size: 1 } }
