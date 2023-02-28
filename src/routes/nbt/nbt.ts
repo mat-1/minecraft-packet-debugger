@@ -21,8 +21,9 @@ function createProto(type) {
     } else if (type === 'little') {
         proto = leNbtJson
     }
-    compiler.addTypesToCompile(JSON.parse(proto))
-    return compiler.compileProtoDefSync()
+    compiler.addTypes(JSON.parse(proto))
+    return compiler
+    // return compiler.compileProtoDefSync()
 }
 
 const protoBE = createProto('big')
