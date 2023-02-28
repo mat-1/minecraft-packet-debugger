@@ -29,10 +29,10 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@sveltejs/adapter-cloudflare": "^2.1.0",
 		"@types/gzip-js": "^0.3.3",
 		"buffer": "^6.0.3",
 		"gzip-js": "^0.3.2",
-		"prismarine-nbt": "^2.2.1",
 		"uuid": "^9.0.0"
 	}
 }
