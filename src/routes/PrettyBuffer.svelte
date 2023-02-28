@@ -1,0 +1,73 @@
+<script lang="ts">
+	export let history: any[]
+	export let buffer: Uint8Array
+
+	export let startHue: number = 0
+	export let endHue: number = 360
+</script>
+
+{#each history as item}
+	{@const startOffset = history[0].data.offset}
+	{@const endOffset = history
+		.slice()
+		.reverse()
+		.find((i) => i.end?.offset).end.offset}
+	{@const type = item.type}
+	{#if type === 'scope'}
+		{@const error = item.end?.offset === undefined || item.data?.offset === undefined}
+		{@const percentStart = error
+			? undefined
+			: (item.data.offset - startOffset) / (endOffset - startOffset)}
+		{@const percentEnd = error
+			? undefined
+			: (item.end.offset - startOffset) / (endOffset - startOffset)}
+		{@const itemStartHue = error ? undefined : startHue + (endHue - startHue) * percentStart}
+		{@const itemEndHue = error ? undefined : startHue + (endHue - startHue) * percentEnd}
+		{@const width = error ? undefined : item.end.offset - item.data.offset}
+		<span class="part-container" style={error ? 'display: inline-flex;' : `--width: ${width}`}>
+			<div class="part">
+				<div
+					class="part-content-container"
+					style={error
+						? 'background: red'
+						: `background: hsl(${Math.random() * 50 - 10}, 50%, 15%)`}
+				>
+					<div class="part-content">
+						{#if item.data.name}
+							<b>{item.data.name}</b>
+						{/if}
+						{#if item.data?.type && (!item.inner || item.inner[0].type === 'scope')}
+							<div class="type">{item.data.type}</div>
+						{/if}
+						{#if item.end?.value !== undefined}
+							<i>{JSON.stringify(item.end?.value)}</i>
+						{/if}
+					</div>
+				</div>
+				{#if item.inner}
+					<svelte:self history={item.inner} {buffer} startHue={itemStartHue} endHue={itemEndHue} />
+				{/if}
+			</div>
+		</span>
+	{/if}
+{/each}
+
+<style>
+	.part-container {
+		width: calc(var(--width) * var(--byte-width));
+		vertical-align: top;
+		display: inline-flex;
+	}
+	.part {
+		width: 100%;
+	}
+	.part-content {
+		text-align: center;
+		margin: 0 auto;
+		width: fit-content;
+		overflow-wrap: anywhere;
+	}
+	.part-content-container {
+		border: 1px solid #000;
+	}
+</style>
