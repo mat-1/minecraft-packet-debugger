@@ -3,7 +3,6 @@
 
 	import { userInputToBuffer } from './parse'
 	import { Parser, ProtoDef } from './protodef/index'
-	import * as compilerMinecraftTypes from './minecraft-datatypes/compiler-minecraft'
 	import * as minecraftTypes from './minecraft-datatypes/minecraft'
 	import { Buffer } from 'buffer'
 

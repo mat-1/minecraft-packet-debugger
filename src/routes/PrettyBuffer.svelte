@@ -1,28 +1,12 @@
 <script lang="ts">
 	export let history: any[]
 	export let buffer: Uint8Array
-
-	export let startHue: number = 0
-	export let endHue: number = 360
 </script>
 
 {#each history as item}
-	{@const startOffset = history[0].data.offset}
-	{@const endOffset = history
-		.slice()
-		.reverse()
-		.find((i) => i.end?.offset)?.end?.offset}
 	{@const type = item.type}
 	{#if type === 'scope'}
 		{@const error = item.end?.offset === undefined || item.data?.offset === undefined}
-		{@const percentStart = error
-			? undefined
-			: (item.data.offset - startOffset) / (endOffset - startOffset)}
-		{@const percentEnd = error
-			? undefined
-			: (item.end.offset - startOffset) / (endOffset - startOffset)}
-		{@const itemStartHue = error ? undefined : startHue + (endHue - startHue) * percentStart}
-		{@const itemEndHue = error ? undefined : startHue + (endHue - startHue) * percentEnd}
 		{@const width = error ? undefined : item.end.offset - item.data.offset}
 		<span
 			class="part-container"
@@ -52,7 +36,7 @@
 					</div>
 				</div>
 				{#if item.inner}
-					<svelte:self history={item.inner} {buffer} startHue={itemStartHue} endHue={itemEndHue} />
+					<svelte:self history={item.inner} {buffer} />
 				{/if}
 			</div>
 		</span>
