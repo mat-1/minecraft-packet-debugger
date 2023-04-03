@@ -6,8 +6,9 @@
 	import * as minecraftTypes from './minecraft-datatypes/minecraft'
 	import { Buffer } from 'buffer'
 
-	import protocol from './protocol.json'
 	import PrettyBuffer from './PrettyBuffer.svelte'
+	import { onMount } from 'svelte'
+	import { browser } from '$app/environment'
 
 	type State = 'handshaking' | 'status' | 'login' | 'play'
 	type Direction = 'toServer' | 'toClient'
@@ -35,7 +36,9 @@
 		}
 	}
 
-	function createProtocol(state: State, direction: Direction, version: string) {
+	let protocol: undefined | any
+
+	function createProtocol(state: State, direction: Direction, protocol: any) {
 		const proto = new ProtoDef(false)
 		proto.addTypes(minecraftTypes)
 		proto.addProtocol(protocol, [state, direction])
@@ -46,20 +49,24 @@
 	function createDeserializer({
 		state,
 		direction,
-		version
+		protocol
 	}: {
 		state: State
 		direction: Direction
-		version: string
+		protocol: any
 	}) {
-		return new Parser(createProtocol(state, direction, version), 'packet')
+		return new Parser(createProtocol(state, direction, protocol), 'packet')
 	}
 
-	$: deserializer = createDeserializer({
-		state,
-		direction,
-		version: '1.19.3'
-	})
+	// let deserializer: Parser
+	// $: {
+	// 	if (protocol)
+	// 		deserializer = createDeserializer({
+	// 			state,
+	// 			direction,
+	// 			protocol
+	// 		})
+	// }
 
 	function unflattenHistory(history: any[], buffer: Uint8Array, end: any = {}): any[] {
 		const nestedHistory = []
@@ -88,11 +95,51 @@
 		return nestedHistory
 	}
 
-	$: data = deserializer.parsePacketBuffer(Buffer.from(buffer.buffer))
+	$: data = deserializer?.parsePacketBuffer(Buffer.from(buffer.buffer)) ?? { history: [] }
 	$: history = unflattenHistory([...data.history], buffer)
+
+	let versionIds: string[] = []
+	let versionId: string | undefined = undefined
+
+	let dataPaths: any = {}
+
+	onMount(async () => {
+		// https://github.com/PrismarineJS/minecraft-data/blob/master/data/dataPaths.json
+		dataPaths = await fetch(
+			'https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/dataPaths.json'
+		).then((r) => r.json())
+		versionIds = [...Object.keys(dataPaths.pc)].reverse()
+		versionId = versionIds[0]
+	})
+
+	// let deserializer: Parser
+	$: deserializer = createDeserializer({
+		state,
+		direction,
+		protocol
+	})
+
+	$: {
+		versionId
+		;(async () => {
+			if (versionId) {
+				const dataPath = dataPaths.pc[versionId].protocol
+				protocol = await fetch(
+					`https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/${dataPath}/protocol.json`
+				).then((r) => r.json())
+			}
+		})()
+	}
 </script>
 
 <h1>mat's Packet Debugger</h1>
+
+<label for="version">Version</label>
+<select name="version" bind:value={versionId}>
+	{#each versionIds as id}
+		<option value={id}>{id}</option>
+	{/each}
+</select>
 
 <label for="state">State</label>
 <select name="state" bind:value={state}>
