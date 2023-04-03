@@ -47,7 +47,7 @@ export function userInputToBuffer(userInput: string): Uint8Array {
         while (userInput != '') {
             let nibble = userInput.slice(0, 1)
             userInput = userInput.slice(1)
-            if (nibble == '') continue
+            if (nibble == ' ') continue
             if (/[0-9a-f]/.test(nibble))
                 byte += nibble
             else
