@@ -19,7 +19,7 @@ export function userInputToBuffer(userInput: string): Uint8Array {
         }
 
 
-        if (/^[0-9a-f]{3,}$/.test(userByte)) {
+        if (/^[0-9a-f]{4,}$/.test(userByte)) {
             mightBeHex = true
             break
         }
