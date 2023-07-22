@@ -1,7 +1,41 @@
+html {
+    height: 100%;
+}
 body {
     background-color: #111;
     color: #eee;
     font-family: sans-serif;
+    height: 100%;
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: stretch;
+    overflow-x: hidden;
+    overflow-wrap: break-word;
+    position: relative;
+    margin: 0;
 }
 
+h1 {
+    margin-top: 0
+}
+a {
+    color: #0dc7f9;
+}
+
+main {
+    flex: 1 0;
+    padding: .5em
+  
+}
+footer {
+    flex: 0 0;
+    margin: 0 auto;
+    padding: .5em;
+    text-align: center;
+}
+footer p {
+    margin-bottom: .5em;
+}
 

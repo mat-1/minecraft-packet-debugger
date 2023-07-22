@@ -9,7 +9,6 @@
 
 	import PrettyBuffer from './PrettyBuffer.svelte'
 	import { onMount } from 'svelte'
-	
 
 	type State = 'handshaking' | 'status' | 'login' | 'play'
 	type Direction = 'toServer' | 'toClient'
@@ -102,7 +101,7 @@
 
 	let prefixSize = 0
 	let prefixValue = 0
-		
+
 	let data
 	$: {
 		let buf = Buffer.from(buffer.buffer)
@@ -177,52 +176,53 @@
 	}
 </script>
 
-<h1>mat's Packet Debugger</h1>
+<main>
+	<h1>mat's Packet Debugger</h1>
 
-<label for="version">Version</label>
-<select name="version" bind:value={versionId}>
-	{#each versionIds as id}
-		<option value={id}>{id}</option>
-	{/each}
-</select>
+	<label for="version">Version</label>
+	<select name="version" bind:value={versionId}>
+		{#each versionIds as id}
+			<option value={id}>{id}</option>
+		{/each}
+	</select>
 
-<label for="state">State</label>
-<select name="state" bind:value={state}>
-	<option value="handshaking">Handshake</option>
-	<option value="status">Status</option>
-	<option value="login">Login</option>
-	<option value="play">Play</option>
-</select>
-<label for="direction">Direction</label>
-<select name="direction" bind:value={direction}>
-	<option value="toServer">Serverbound</option>
-	<option value="toClient">Clientbound</option>
-</select>
+	<label for="state">State</label>
+	<select name="state" bind:value={state}>
+		<option value="handshaking">Handshake</option>
+		<option value="status">Status</option>
+		<option value="login">Login</option>
+		<option value="play">Play</option>
+	</select>
+	<label for="direction">Direction</label>
+	<select name="direction" bind:value={direction}>
+		<option value="toServer">Serverbound</option>
+		<option value="toClient">Clientbound</option>
+	</select>
 
-<div>
-	<label for="length-prefixed">Length prefixed?</label>
-	<input type="checkbox" id="length-prefixed" bind:checked={lengthPrefixed} />
-</div>
-
-<div>
-	<input id="input-buffer" bind:value={userInput} placeholder="Your buffer" />
-	{#if invalidBufferError}
-		{invalidBufferError}
-	{/if}
-</div>
-
-<div class="pretty-buffer-container-container">
-	<div class="pretty-buffer-container">
-		<div id="pretty-buffer">
-			{#each buffer as byte}
-				<span class="byte">{byte}</span>
-			{/each}
-		</div>
-		<PrettyBuffer {history} {buffer} />
+	<div>
+		<label for="length-prefixed">Length prefixed?</label>
+		<input type="checkbox" id="length-prefixed" bind:checked={lengthPrefixed} />
 	</div>
-</div>
 
-<!-- <p>
+	<div>
+		<input id="input-buffer" bind:value={userInput} placeholder="Your buffer" />
+		{#if invalidBufferError}
+			{invalidBufferError}
+		{/if}
+	</div>
+
+	<div class="pretty-buffer-container-container">
+		<div class="pretty-buffer-container">
+			<div id="pretty-buffer">
+				{#each buffer as byte}
+					<span class="byte">{byte}</span>
+				{/each}
+			</div>
+			<PrettyBuffer {history} {buffer} />
+		</div>
+	</div>
+
+	<!-- <p>
 	<code>
 		<pre>
 {JSON.stringify(history, null, 2)}
@@ -230,16 +230,22 @@
 		</pre>
 	</code>
 </p> -->
-{#if data.data}
-	<p>
-		<code>
-			<pre>
+	{#if data.data}
+		<p>
+			<code>
+				<pre>
 {JSON.stringify(data.data, null, 2)}
 
 		</pre>
-		</code>
-	</p>
-{/if}
+			</code>
+		</p>
+	{/if}
+</main>
+
+<footer>
+	<p>hacked together by <a href="https://matdoes.dev">mat</a> using code from <a href="https://github.com/PrismarineJS/node-minecraft-protocol">node-minecraft-protocol</a> and dependencies</p>
+	<a href="https://github.com/mat-1/minecraft-packet-debugger">source code</a>
+</footer>
 
 <style>
 	:root {
