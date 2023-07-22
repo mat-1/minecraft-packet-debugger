@@ -126,7 +126,7 @@
 	let history
 	$: {
 		history = unflattenHistory([...data.history], buffer, lengthPrefixed)
-		if (lengthPrefixed) {
+		if (prefixSize > 0) {
 			history.unshift({
 				type: 'scope',
 				data: {
