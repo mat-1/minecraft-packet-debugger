@@ -1,4 +1,5 @@
 import { Buffer } from 'buffer'
+import type { ProtoDef } from '.'
 
 export class Serializer extends TransformStream {
     constructor(proto, mainType) {
@@ -25,6 +26,10 @@ export class Serializer extends TransformStream {
 }
 
 export class Parser extends TransformStream {
+    proto: ProtoDef
+    mainType: string
+    queue: Buffer
+    
     constructor(proto, mainType) {
         super({ readableObjectMode: true })
         this.proto = proto
@@ -32,8 +37,8 @@ export class Parser extends TransformStream {
         this.queue = Buffer.alloc(0)
     }
 
-    parsePacketBuffer(buffer: Buffer) {
-        return this.proto.parsePacketBuffer(this.mainType, buffer)
+    parsePacketBuffer(buffer: Buffer, offset = 0) {
+        return this.proto.parsePacketBuffer(this.mainType, buffer, offset)
     }
 
     _transform(chunk, enc, cb) {

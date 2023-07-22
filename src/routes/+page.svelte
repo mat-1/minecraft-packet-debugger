@@ -5,10 +5,11 @@
 	import { Parser, ProtoDef } from './protodef/index'
 	import * as minecraftTypes from './minecraft-datatypes/minecraft'
 	import { Buffer } from 'buffer'
+	import { varint } from './protodef/datatypes/utils'
 
 	import PrettyBuffer from './PrettyBuffer.svelte'
 	import { onMount } from 'svelte'
-	import { browser } from '$app/environment'
+	
 
 	type State = 'handshaking' | 'status' | 'login' | 'play'
 	type Direction = 'toServer' | 'toClient'
@@ -24,6 +25,8 @@
 	let state: State = 'handshaking'
 	// let state: State = 'play'
 	let direction: Direction = 'toServer'
+
+	let lengthPrefixed = false
 
 	let buffer: Uint8Array
 	let invalidBufferError: string | undefined
@@ -92,11 +95,53 @@
 			} else nestedHistory.push(item)
 		}
 
+		console.log('nestedHistory', nestedHistory)
+
 		return nestedHistory
 	}
 
-	$: data = deserializer?.parsePacketBuffer(Buffer.from(buffer.buffer)) ?? { history: [] }
-	$: history = unflattenHistory([...data.history], buffer)
+	let prefixSize = 0
+	let prefixValue = 0
+		
+	let data
+	$: {
+		let buf = Buffer.from(buffer.buffer)
+		console.log('lengthPrefixed', lengthPrefixed)
+		if (lengthPrefixed) {
+			const readVarInt = varint[0]
+			try {
+				const varintResult = readVarInt(buf, 0)
+				console.log('varintResult', varintResult)
+				prefixSize = varintResult.size
+				prefixValue = varintResult.value
+			} catch {
+				console.log('invalid length')
+				prefixSize = 0
+			}
+		} else {
+			prefixSize = 0
+		}
+		data = deserializer?.parsePacketBuffer(buf, prefixSize) ?? { history: [] }
+	}
+	let history
+	$: {
+		history = unflattenHistory([...data.history], buffer, lengthPrefixed)
+		if (lengthPrefixed) {
+			history.unshift({
+				type: 'scope',
+				data: {
+					name: 'length',
+					type: 'varint',
+					offset: 0
+				},
+				end: {
+					offset: prefixSize,
+					value: prefixValue
+				},
+				inner: undefined
+			})
+		}
+	}
 
 	let versionIds: string[] = []
 	let versionId: string | undefined = undefined
@@ -154,10 +199,17 @@
 	<option value="toClient">Clientbound</option>
 </select>
 
-<input id="input-buffer" bind:value={userInput} placeholder="Your buffer" />
-{#if invalidBufferError}
-	{invalidBufferError}
-{/if}
+<div>
+	<label for="length-prefixed">Length prefixed?</label>
+	<input type="checkbox" id="length-prefixed" bind:checked={lengthPrefixed} />
+</div>
+
+<div>
+	<input id="input-buffer" bind:value={userInput} placeholder="Your buffer" />
+	{#if invalidBufferError}
+		{invalidBufferError}
+	{/if}
+</div>
 
 <div class="pretty-buffer-container-container">
 	<div class="pretty-buffer-container">
