@@ -8,7 +8,7 @@
 	{#if type === 'scope'}
 		{@const error = item.end?.offset === undefined || item.data?.offset === undefined}
 		{@const width = error ? undefined : item.end.offset - item.data.offset}
-		{#if width > 0}
+		{#if width !== 0}
 		<span
 			class="part-container"
 			style={error ? 'display: inline-flex;' : `--width: ${width}`}
