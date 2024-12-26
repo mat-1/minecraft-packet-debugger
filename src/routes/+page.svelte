@@ -4,30 +4,43 @@
 	import { userInputToBuffer } from './parse'
 	import { Parser, ProtoDef } from './protodef/index'
 	import * as minecraftTypes from './minecraft-datatypes/minecraft'
+	import * as nbt from './nbt/nbt'
 	import { Buffer } from 'buffer'
 	import { varint } from './protodef/datatypes/utils'
 
 	import PrettyBuffer from './PrettyBuffer.svelte'
 	import { onMount } from 'svelte'
+	import { browser } from '$app/environment'
+
+	let dataKind: 'packet' | 'nbt' = browser
+		? (localStorage.getItem('dataKind') as any) ?? 'packet'
+		: 'packet'
+	$: if (browser) localStorage.setItem('dataKind', dataKind)
 
 	type State = 'handshaking' | 'status' | 'login' | 'play'
 	type Direction = 'toServer' | 'toClient'
 
-	// handshake toserver
-	// let userInput =
-	// 	'0x00, 0xff, 0xff, 0xff, 0xff, 0x0f, 0x07, 0x6d, 0x61, 0x73, 0x73, 0x63, 0x61, 0x6e, 0x00, 0x00, 0x01'
-	// let userInput = '0x05 1 65 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 0 1 1 0 1'
-	// let userInput = '0x05 1 65 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 1 1 1'
+	let userInput = browser ? localStorage.getItem('userInput') ?? '' : ''
+	$: if (browser) localStorage.setItem('userInput', userInput)
 
-	let userInput = ''
-
-	let state: State = 'handshaking'
+	let state: State = browser
+		? (localStorage.getItem('state') as any) ?? 'handshaking'
+		: 'handshaking'
+	$: if (browser) localStorage.setItem('state', state)
 	// let state: State = 'play'
-	let direction: Direction = 'toServer'
+	let direction: Direction = browser
+		? (localStorage.getItem('direction') as any) ?? 'toServer'
+		: 'toServer'
+	$: if (browser) localStorage.setItem('direction', direction)
+
+	let isNetworkNbt: boolean = browser
+		? (localStorage.getItem('isNetworkNbt') as any) === 'true'
+		: false
+	$: if (browser) localStorage.setItem('isNetworkNbt', isNetworkNbt.toString())
 
 	let lengthPrefixed = false
 
-	let buffer: Uint8Array
+	let buffer: Uint8Array = new Uint8Array()
 	let invalidBufferError: string | undefined
 	$: {
 		try {
@@ -59,16 +72,6 @@
 	}) {
 		return new Parser(createProtocol(state, direction, protocol), 'packet')
 	}
-
-	// let deserializer: Parser
-	// $: {
-	// 	if (protocol)
-	// 		deserializer = createDeserializer({
-	// 			state,
-	// 			direction,
-	// 			protocol
-	// 		})
-	// }
 
 	function unflattenHistory(history: any[], buffer: Uint8Array, end: any = {}): any[] {
 		const nestedHistory = []
@@ -156,12 +159,21 @@
 		versionId = versionIds[0]
 	})
 
-	// let deserializer: Parser
-	$: deserializer = createDeserializer({
-		state,
-		direction,
-		protocol
-	})
+	let deserializer: Parser
+	$: {
+		switch (dataKind) {
+			case 'packet':
+				deserializer = createDeserializer({
+					state,
+					direction,
+					protocol
+				})
+				break
+			case 'nbt':
+				deserializer = new Parser(nbt.protos.big, isNetworkNbt ? 'anonymousNbt' : 'nbt')
+				break
+		}
+	}
 
 	$: {
 		versionId
@@ -177,34 +189,51 @@
 </script>
 
 <main>
-	<h1>mat's Packet Debugger</h1>
-
-	<label for="version">Version</label>
-	<select name="version" bind:value={versionId}>
-		{#each versionIds as id}
-			<option value={id}>{id}</option>
-		{/each}
-	</select>
-
-	<label for="state">State</label>
-	<select name="state" bind:value={state}>
-		<option value="handshaking">Handshake</option>
-		<option value="status">Status</option>
-		<option value="login">Login</option>
-		<option value="play">Play</option>
-	</select>
-	<label for="direction">Direction</label>
-	<select name="direction" bind:value={direction}>
-		<option value="toServer">Serverbound</option>
-		<option value="toClient">Clientbound</option>
-	</select>
+	<h1>mat's {dataKind == 'packet' ? 'Packet' : 'NBT'} Debugger</h1>
 
 	<div>
-		<label for="length-prefixed">Length prefixed?</label>
-		<input type="checkbox" id="length-prefixed" bind:checked={lengthPrefixed} />
+		<label for="kind">Kind</label>
+		<select name="kind" bind:value={dataKind}>
+			<option value="packet">Packet</option>
+			<option value="nbt">NBT</option>
+		</select>
 	</div>
 
-	<div>
+	{#if dataKind == 'packet'}
+		<div>
+			<label for="version">Version</label>
+			<select name="version" bind:value={versionId}>
+				{#each versionIds as id}
+					<option value={id}>{id}</option>
+				{/each}
+			</select>
+
+			<label for="state">State</label>
+			<select name="state" bind:value={state}>
+				<option value="handshaking">Handshake</option>
+				<option value="status">Status</option>
+				<option value="login">Login</option>
+				<option value="play">Play</option>
+			</select>
+			<label for="direction">Direction</label>
+			<select name="direction" bind:value={direction}>
+				<option value="toServer">Serverbound</option>
+				<option value="toClient">Clientbound</option>
+			</select>
+
+			<div>
+				<label for="length-prefixed">Length prefixed?</label>
+				<input type="checkbox" id="length-prefixed" bind:checked={lengthPrefixed} />
+			</div>
+		</div>
+	{:else}
+		<div>
+			<label for="is-network-nbt">Network NBT?</label>
+			<input type="checkbox" id="is-network-nbt" bind:checked={isNetworkNbt} />
+		</div>
+	{/if}
+
+	<div id="input-buffer-container">
 		<input id="input-buffer" bind:value={userInput} placeholder="Your buffer" />
 		{#if invalidBufferError}
 			{invalidBufferError}
@@ -243,7 +272,11 @@
 </main>
 
 <footer>
-	<p>hacked together by <a href="https://matdoes.dev">mat</a> using code from <a href="https://github.com/PrismarineJS/node-minecraft-protocol">node-minecraft-protocol</a> and dependencies</p>
+	<p>
+		hacked together by <a href="https://matdoes.dev">mat</a> using code from
+		<a href="https://github.com/PrismarineJS/node-minecraft-protocol">node-minecraft-protocol</a> and
+		dependencies
+	</p>
 	<a href="https://github.com/mat-1/minecraft-packet-debugger">source code</a>
 </footer>
 
@@ -267,5 +300,9 @@
 
 	.pretty-buffer-container-container {
 		overflow: auto;
+	}
+
+	#input-buffer-container {
+		margin: 1em 0;
 	}
 </style>

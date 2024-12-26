@@ -16,14 +16,39 @@ function readArray(buffer, offset, typeArgs, rootNode, history: any[]) {
 		size: 0
 	}
 	let value
+
+	history.push({
+		type: 'scope_start',
+		data: { name: 'length', offset, type: typeArgs.countType }
+	})
 	let { count, size } = getCount.call(this, buffer, offset, typeArgs, rootNode, history)
+	history.push({
+		type: 'scope_end',
+		data: { offset: offset + size, value: count }
+	})
+
 	offset += size
 	results.size += size
+
+	const typeName =
+		Array.isArray(typeArgs.type) && typeArgs.type[0] == 'nbtSwitch'
+			? getField('type', rootNode)
+			: typeArgs.type
+
 	for (let i = 0; i < count; i++) {
+		history.push({
+			type: 'scope_start',
+			data: { name: 'array item', offset, type: typeName }
+		})
 		;({ size, value } = tryDoc(
 			() => this.read(buffer, offset, typeArgs.type, rootNode, history),
 			i
 		))
+		history.push({
+			type: 'scope_end',
+			data: { offset: offset + size, value: typeof value !== 'object' ? value : undefined }
+		})
+
 		results.size += size
 		offset += size
 		results.value.push(value)
@@ -64,7 +89,10 @@ function readContainer(buffer, offset, typeArgs, context, history: any[]) {
 				name,
 				offset,
 				type: typeName,
-				inner_type: typeName !== innerTypeName ? innerTypeName : undefined
+				inner_type:
+					typeName !== innerTypeName && typeof innerTypeName === 'string'
+						? innerTypeName
+						: undefined
 			}
 		})
 		tryDoc(() => {
@@ -81,11 +109,17 @@ function readContainer(buffer, offset, typeArgs, context, history: any[]) {
 				results.value[name] = readResults.value
 			}
 			console.log(type, 'value', readResults)
+
+			let data
+			if (/varint|[ui]\d+|string|nbtTagName/.test(innerTypeName))
+				data = { offset, value: JSON.stringify(readResults.value) }
+			else if (/tag|nbtMapper/.test(innerTypeName) && typeof readResults.value !== 'object')
+				data = { offset, value: readResults.value }
+			else data = { offset }
+
 			history.push({
 				type: 'scope_end',
-				data: /varint|[ui]\d+|string/.test(innerTypeName)
-					? { offset, value: readResults.value }
-					: { offset }
+				data
 			})
 		}, name || 'unknown')
 	})

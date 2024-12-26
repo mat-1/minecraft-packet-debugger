@@ -9,7 +9,7 @@ export {
 export const option = [readOption, writeOption, sizeOfOption, protoConditional.option]
 
 function readSwitch(buffer, offset, { compareTo, fields, compareToValue, default: defVal }, rootNode, history: any[]) {
-    compareTo = compareToValue !== undefined ? compareToValue : getField(compareTo, rootNode)
+    compareTo = compareToValue ?? getField(compareTo, rootNode)
     if (typeof fields[compareTo] === 'undefined' && typeof defVal === 'undefined') { throw new Error(compareTo + ' has no associated fieldInfo in switch') }
     for (const field in fields) {
         if (field.startsWith('/')) {
@@ -20,7 +20,10 @@ function readSwitch(buffer, offset, { compareTo, fields, compareToValue, default
     const caseDefault = typeof fields[compareTo] === 'undefined'
     const resultingType = caseDefault ? defVal : fields[compareTo]
     const fieldInfo = getFieldInfo(resultingType)
-    return tryDoc(() => this.read(buffer, offset, fieldInfo, rootNode, history), caseDefault ? 'default' : compareTo)
+
+    const result = tryDoc(() => this.read(buffer, offset, fieldInfo, rootNode, history), caseDefault ? 'default' : compareTo)
+    return result
+
 }
 
 function writeSwitch(value, buffer, offset, { compareTo, fields, compareToValue, default: defVal }, rootNode) {
