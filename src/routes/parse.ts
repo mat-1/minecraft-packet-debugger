@@ -27,7 +27,6 @@ export function userInputToBuffer(userInput: string): Uint8Array {
 		const byte = Number(userByte)
 
 		if (isNaN(byte)) {
-			// throw Error(`${userByte} is not a number (should be like 0x00)`)
 			mightBeHex = true
 			break
 		}

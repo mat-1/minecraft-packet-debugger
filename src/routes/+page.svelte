@@ -251,14 +251,6 @@
 		</div>
 	</div>
 
-	<!-- <p>
-	<code>
-		<pre>
-{JSON.stringify(history, null, 2)}
-
-		</pre>
-	</code>
-</p> -->
 	{#if data.data}
 		<p>
 			<code>
