@@ -38,7 +38,10 @@
 		: false
 	$: if (browser) localStorage.setItem('isNetworkNbt', isNetworkNbt.toString())
 
-	let lengthPrefixed = false
+	let lengthPrefixed: boolean = browser
+		? (localStorage.getItem('lengthPrefixed') as any) === 'true'
+		: false
+	$: if (browser) localStorage.setItem('lengthPrefixed', isNetworkNbt.toString())
 
 	let buffer: Uint8Array = new Uint8Array()
 	let invalidBufferError: string | undefined
@@ -55,6 +58,7 @@
 
 	function createProtocol(state: State, direction: Direction, protocol: any) {
 		const proto = new ProtoDef(false)
+		proto.addTypes(nbt.protos.big.types)
 		proto.addTypes(minecraftTypes)
 		proto.addProtocol(protocol, [state, direction])
 		// protocols[key] = proto
@@ -161,18 +165,21 @@
 
 	let deserializer: Parser
 	$: {
-		switch (dataKind) {
-			case 'packet':
-				deserializer = createDeserializer({
-					state,
-					direction,
-					protocol
-				})
-				break
-			case 'nbt':
-				deserializer = new Parser(nbt.protos.big, isNetworkNbt ? 'anonymousNbt' : 'nbt')
-				break
-		}
+		if (protocol)
+			switch (dataKind) {
+				case 'packet':
+					console.log('creating packet parser')
+					deserializer = createDeserializer({
+						state,
+						direction,
+						protocol
+					})
+					break
+				case 'nbt':
+					console.log('creating nbt parser')
+					deserializer = new Parser(nbt.protos.big, isNetworkNbt ? 'anonymousNbt' : 'nbt')
+					break
+			}
 	}
 
 	$: {
@@ -268,7 +275,7 @@
 	<p>
 		hacked together by <a href="https://matdoes.dev">mat</a> using code from
 		<a href="https://github.com/PrismarineJS/node-minecraft-protocol">node-minecraft-protocol</a> and
-		dependencies
+		dependencies.
 	</p>
 	<a href="https://github.com/mat-1/minecraft-packet-debugger">source code</a>
 </footer>

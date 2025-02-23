@@ -55,13 +55,24 @@ function sizeOfSwitch(value, { compareTo, fields, compareToValue, default: defVa
 }
 
 function readOption(buffer, offset, typeArgs, context, history: any[]) {
+    history.push({
+        type: 'scope_start',
+        data: { name: 'present', offset, type: 'boolean' }
+    })
+
     if (buffer.length < offset + 1) { throw new PartialReadError() }
     const val = buffer.readUInt8(offset++)
+    history.push({
+        type: 'scope_end',
+        data: { offset: offset, value: val }
+    })
     if (val !== 0) {
         const retval = this.read(buffer, offset, typeArgs, context, history)
         retval.size++
         return retval
-    } else { return { size: 1 } }
+    } else {
+        return { size: 1 }
+    }
 }
 
 function writeOption(value, buffer, offset, typeArgs, context) {

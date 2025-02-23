@@ -50,8 +50,8 @@ function writeUUID(value, buffer, offset) {
 	return offset + 16
 }
 
-function readNbt(buffer, offset) {
-	return pnbt.proto.read(buffer, offset, 'nbt')
+function readNbt(buffer, offset, typeArgs, context, history: any[]) {
+	return pnbt.proto.read(buffer, offset, 'nbt', undefined, history)
 }
 
 function writeNbt(value, buffer, offset) {
