@@ -1,8 +1,11 @@
 <script lang="ts">
+	import { type Writable } from 'svelte/store'
+
 	export let history: any[]
 	export let buffer: Uint8Array
 
 	export let minByteWidths: number[]
+	export let selectedRange: Writable<[number, number] | null>
 
 	function getWidth(item) {
 		let start = item.data.offset
@@ -19,6 +22,19 @@
 		if (item.end?.offset !== undefined) return item.end.offset
 		if (item.inner) return getEndOffset(item.inner[item.inner.length - 1])
 		return item.data.offset + 1
+	}
+
+	function selectItem(item) {
+		const itemRange: [number, number] = [item.data.offset, getEndOffset(item)]
+		if (selectedRange) {
+			if (selectedRange[0] === itemRange[0] && selectedRange[1] === itemRange[1]) {
+				$selectedRange = null
+			} else {
+				$selectedRange = itemRange
+			}
+		} else {
+			$selectedRange = itemRange
+		}
 	}
 </script>
 
@@ -39,6 +55,10 @@
 						style={error
 							? 'background: red'
 							: `background: hsl(${Math.random() * 50 - 10}, 50%, 15%)`}
+						on:click|stopPropagation={() => selectItem(item)}
+						on:keypress|stopPropagation={() => selectItem(item)}
+						class:unselected={$selectedRange &&
+							(item.data.offset < $selectedRange[0] || getEndOffset(item) > $selectedRange[1])}
 					>
 						<div class="part-content">
 							{#if item.data.name}
@@ -60,7 +80,7 @@
 						</div>
 					</div>
 					{#if item.inner}
-						<svelte:self history={item.inner} {buffer} {minByteWidths} />
+						<svelte:self history={item.inner} {buffer} {minByteWidths} {selectedRange} />
 					{/if}
 				</div>
 			</span>
@@ -95,5 +115,12 @@
 
 	.value {
 		font-size: 0.8em;
+	}
+
+	.unselected {
+		opacity: 0.3;
+	}
+	.part-content-container {
+		cursor: pointer;
 	}
 </style>
