@@ -41,7 +41,7 @@
 	let lengthPrefixed: boolean = browser
 		? (localStorage.getItem('lengthPrefixed') as any) === 'true'
 		: false
-	$: if (browser) localStorage.setItem('lengthPrefixed', isNetworkNbt.toString())
+	$: if (browser) localStorage.setItem('lengthPrefixed', lengthPrefixed.toString())
 
 	let buffer: Uint8Array = new Uint8Array()
 	let invalidBufferError: string | undefined
