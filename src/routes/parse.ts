@@ -1,5 +1,10 @@
 export function userInputToBuffer(userInput: string): Uint8Array {
 	userInput = userInput.toLowerCase().trim()
+
+	// trim [ and ]
+	if (userInput.startsWith('[')) userInput = userInput.slice(1)
+	if (userInput.endsWith(']')) userInput = userInput.slice(0, -1)
+
 	const initialUserInput = userInput
 	let numberBuffer: number[] = []
 

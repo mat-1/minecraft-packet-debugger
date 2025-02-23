@@ -1,79 +1,84 @@
 <script lang="ts">
+	import PrettyBufferInner from './PrettyBufferInner.svelte'
+
 	export let history: any[]
 	export let buffer: Uint8Array
+
+	// the minimum width that each "byte" element must take up (in pixels).
+	let minByteWidths = []
+	let lastIndex = 0
+
+	function updateItemWidth(item: any) {
+		const byteOffsetStart = item.data.offset
+		const byteOffsetEnd = item.end?.offset ?? item.data.offset + 1
+		const length = byteOffsetEnd - byteOffsetStart
+
+		if (byteOffsetEnd > lastIndex) lastIndex = byteOffsetEnd
+
+		const totalItemWidth = 2
+
+		const widthPerByte = totalItemWidth / length
+		for (let i = byteOffsetStart; i < byteOffsetEnd; i++) {
+			// we can only make the width bigger
+			minByteWidths[i] = Math.max(minByteWidths[i], widthPerByte)
+		}
+
+		// recursive
+		item.inner?.forEach(updateItemWidth)
+	}
+
+	$: {
+		minByteWidths = []
+		lastIndex = 0
+		for (const _ of buffer) {
+			minByteWidths.push(1)
+		}
+		history.forEach(updateItemWidth)
+	}
 </script>
 
-{#each history as item}
-	{@const type = item.type}
-	{#if type === 'scope'}
-		{@const error = item.end?.offset === undefined || item.data?.offset === undefined}
-		{@const width = error ? undefined : item.end.offset - item.data.offset}
-		{#if width !== 0}
-			<span
-				class="part-container"
-				style={error ? 'display: inline-flex;' : `--width: ${width}`}
-				class:comment={width === 0}
-			>
-				<div class="part">
-					<div
-						class="part-content-container"
-						style={error
-							? 'background: red'
-							: `background: hsl(${Math.random() * 50 - 10}, 50%, 15%)`}
-					>
-						<div class="part-content">
-							{#if item.data.name}
-								<b>{item.data.name}</b>
-							{/if}
-							{#if item.data?.type && (!item.inner || item.inner[0].type === 'scope')}
-								<div class="type">
-									{item.data.type}
-									{#if item.data.inner_type}({item.data.inner_type}){/if}
-								</div>
-							{/if}
-							{#if item.end?.value !== undefined}
-								<i class="value"
-									>{typeof item.end?.value === 'string'
-										? item.end?.value
-										: JSON.stringify(item.end?.value)}</i
-								>
-							{/if}
-						</div>
-					</div>
-					{#if item.inner}
-						<svelte:self history={item.inner} {buffer} />
-					{/if}
-				</div>
+<div class="pretty-buffer-container">
+	<div id="pretty-buffer">
+		{#each buffer as byte, i}
+			<span class="byte" style="--width:{minByteWidths[i]}">{byte} </span>
+		{/each}
+	</div>
+	<PrettyBufferInner {history} {buffer} {minByteWidths} /><span class="overflow-bytes">
+		{#each buffer.slice(lastIndex) as byte, i}
+			<span class="overflow byte" style="--width:{minByteWidths[i + lastIndex]}">
+				{#if byte < 32 || byte > 126}
+					.
+				{:else}
+					{String.fromCharCode(byte)}
+				{/if}
 			</span>
-		{/if}
-	{/if}
-{/each}
+		{/each}
+	</span>
+</div>
 
 <style>
-	.part-container {
-		width: calc(var(--width) * var(--byte-width));
-		vertical-align: top;
-		display: inline-flex;
-	}
-	.part {
-		width: 100%;
-	}
-	.part-content {
+	.byte {
+		display: inline-block;
+		width: calc(var(--width) * var(--base-byte-width));
 		text-align: center;
-		margin: 0 auto;
-		width: fit-content;
-		overflow-wrap: anywhere;
-	}
-	.part-content-container {
-		border: 1px solid #000;
+		white-space: nowrap;
 	}
 
-	.comment {
-		overflow: none;
-		opacity: 0.5;
+	#pretty-buffer {
+		font-family: monospace;
 	}
 
-	.value {
-		font-size: 0.8em;
+	.pretty-buffer-container {
+		width: max-content;
+	}
+
+	.overflow-bytes {
+		margin-left: 1px;
+	}
+	.overflow {
+		background: #222;
+		outline: 2px solid #000;
+		height: 2rem;
+		line-height: 2rem;
 	}
 </style>

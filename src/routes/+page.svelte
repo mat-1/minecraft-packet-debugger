@@ -8,9 +8,9 @@
 	import { Buffer } from 'buffer'
 	import { varint } from './protodef/datatypes/utils'
 
-	import PrettyBuffer from './PrettyBuffer.svelte'
 	import { onMount } from 'svelte'
 	import { browser } from '$app/environment'
+	import PrettyBuffer from './PrettyBuffer.svelte'
 
 	let dataKind: 'packet' | 'nbt' = browser
 		? (localStorage.getItem('dataKind') as any) ?? 'packet'
@@ -249,14 +249,7 @@
 	</div>
 
 	<div class="pretty-buffer-container-container">
-		<div class="pretty-buffer-container">
-			<div id="pretty-buffer">
-				{#each buffer as byte}
-					<span class="byte">{byte}</span>
-				{/each}
-			</div>
-			<PrettyBuffer {history} {buffer} />
-		</div>
+		<PrettyBuffer {buffer} {history} />
 	</div>
 
 	{#if data.data}
@@ -282,22 +275,8 @@
 
 <style>
 	:root {
-		--byte-width: 5rem;
+		--base-byte-width: 2rem;
 	}
-	.byte {
-		display: inline-block;
-		width: var(--byte-width);
-		text-align: center;
-	}
-
-	#pretty-buffer {
-		font-family: monospace;
-	}
-
-	.pretty-buffer-container {
-		width: max-content;
-	}
-
 	.pretty-buffer-container-container {
 		overflow: auto;
 	}
