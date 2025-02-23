@@ -17,7 +17,7 @@
 		: 'packet'
 	$: if (browser) localStorage.setItem('dataKind', dataKind)
 
-	type State = 'handshaking' | 'status' | 'login' | 'play'
+	type State = 'handshaking' | 'status' | 'login' | 'play' | 'configuration'
 	type Direction = 'toServer' | 'toClient'
 
 	let userInput = browser ? localStorage.getItem('userInput') ?? '' : ''
@@ -213,6 +213,7 @@
 				<option value="handshaking">Handshake</option>
 				<option value="status">Status</option>
 				<option value="login">Login</option>
+				<option value="configuration">Configuration</option>
 				<option value="play">Play</option>
 			</select>
 			<label for="direction">Direction</label>
