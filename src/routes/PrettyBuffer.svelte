@@ -11,7 +11,7 @@
 
 	function updateItemWidth(item: any) {
 		const byteOffsetStart = item.data.offset
-		const byteOffsetEnd = item.end?.offset ?? item.data.offset + 1
+		const byteOffsetEnd = getEndOffset(item)
 		const length = byteOffsetEnd - byteOffsetStart
 
 		if (byteOffsetEnd > lastIndex) lastIndex = byteOffsetEnd
@@ -41,6 +41,12 @@
 
 	function resetSelectedRange() {
 		selectedRange.set(null)
+	}
+
+	function getEndOffset(item) {
+		if (item.end?.offset !== undefined) return item.end.offset
+		if (item.inner) return getEndOffset(item.inner[item.inner.length - 1])
+		return item.data.offset + 1
 	}
 </script>
 
