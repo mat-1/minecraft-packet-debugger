@@ -5,11 +5,13 @@
 	export let minByteWidths: number[]
 
 	function sumWidths(start: number, end: number) {
+		// if (end === undefined) return undefined
+		end ??= start + 1
+
 		let sum = 0
 		for (let i = start; i < end; i++) {
-			sum += minByteWidths[i]
+			sum += minByteWidths[i] || 2.5
 		}
-		console.log('start', start, 'end', end, 'sum', sum)
 		return sum
 	}
 </script>
@@ -18,11 +20,12 @@
 	{@const type = item.type}
 	{#if type === 'scope'}
 		{@const error = item.end?.offset === undefined || item.data?.offset === undefined}
-		{@const width = error ? undefined : sumWidths(item.data.offset, item.end.offset)}
+		{@const width = sumWidths(item.data.offset, item.end?.offset)}
 		{#if width !== 0}
 			<span
 				class="part-container"
-				style={error ? 'display: inline-flex;' : `--width: ${width}`}
+				style={(error ? 'display: inline-flex;' : '') +
+					(error ? `--min-width: ${width}` : `--width: ${width}`)}
 				class:comment={width === 0}
 			>
 				<div class="part">
@@ -63,6 +66,7 @@
 <style>
 	.part-container {
 		width: calc(var(--width) * var(--base-byte-width));
+		min-width: calc(var(--min-width) * var(--base-byte-width));
 		vertical-align: top;
 		display: inline-flex;
 	}

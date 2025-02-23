@@ -15,7 +15,7 @@
 
 		if (byteOffsetEnd > lastIndex) lastIndex = byteOffsetEnd
 
-		const totalItemWidth = 2
+		const totalItemWidth = 2.5
 
 		const widthPerByte = totalItemWidth / length
 		for (let i = byteOffsetStart; i < byteOffsetEnd; i++) {
