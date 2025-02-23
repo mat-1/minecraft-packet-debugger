@@ -38,7 +38,11 @@ function readArray(buffer, offset, typeArgs, rootNode, history: any[]) {
 	for (let i = 0; i < count; i++) {
 		history.push({
 			type: 'scope_start',
-			data: { name: 'array item', offset, type: typeName }
+			data: {
+				name: 'array item',
+				offset,
+				type: typeof typeName !== 'object' ? typeName : undefined
+			}
 		})
 		;({ size, value } = tryDoc(
 			() => this.read(buffer, offset, typeArgs.type, rootNode, history),
@@ -111,9 +115,9 @@ function readContainer(buffer, offset, typeArgs, context, history: any[]) {
 			console.log(type, 'value', readResults)
 
 			let data
-			if (/varint|[ui]\d+|string|nbtTagName/.test(innerTypeName))
+			if (/^varint|[ui]\d+|string|nbtTagName$/.test(innerTypeName))
 				data = { offset, value: JSON.stringify(readResults.value) }
-			else if (/tag|nbtMapper/.test(innerTypeName) && typeof readResults.value !== 'object')
+			else if (/^tag|nbtMapper|type$/.test(innerTypeName) && typeof readResults.value !== 'object')
 				data = { offset, value: readResults.value }
 			else data = { offset }
 

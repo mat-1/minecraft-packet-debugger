@@ -4,9 +4,9 @@
 
 	export let minByteWidths: number[]
 
-	function sumWidths(start: number, end: number) {
-		// if (end === undefined) return undefined
-		end ??= start + 1
+	function getWidth(item) {
+		let start = item.data.offset
+		let end = getEndOffset(item)
 
 		let sum = 0
 		for (let i = start; i < end; i++) {
@@ -14,18 +14,23 @@
 		}
 		return sum
 	}
+
+	function getEndOffset(item) {
+		if (item.end?.offset !== undefined) return item.end.offset
+		if (item.inner) return getEndOffset(item.inner[item.inner.length - 1])
+		return item.data.offset + 1
+	}
 </script>
 
 {#each history as item}
 	{@const type = item.type}
 	{#if type === 'scope'}
 		{@const error = item.end?.offset === undefined || item.data?.offset === undefined}
-		{@const width = sumWidths(item.data.offset, item.end?.offset)}
+		{@const width = getWidth(item)}
 		{#if width !== 0}
 			<span
 				class="part-container"
-				style={(error ? 'display: inline-flex;' : '') +
-					(error ? `--min-width: ${width}` : `--width: ${width}`)}
+				style={(error ? 'display: inline-flex;' : '') + `--width: ${width}`}
 				class:comment={width === 0}
 			>
 				<div class="part">

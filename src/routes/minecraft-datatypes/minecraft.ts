@@ -51,7 +51,19 @@ function writeUUID(value, buffer, offset) {
 }
 
 function readNbt(buffer, offset, typeArgs, context, history: any[]) {
-	return pnbt.proto.read(buffer, offset, 'nbt', undefined, history)
+	history.push({
+		type: 'scope_start',
+		data: { name: 'nbt tag', offset }
+	})
+
+	const res = pnbt.proto.read(buffer, offset, 'nbt', undefined, history)
+
+	history.push({
+		type: 'scope_end',
+		data: { offset: offset + res.size }
+	})
+
+	return res
 }
 
 function writeNbt(value, buffer, offset) {

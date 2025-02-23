@@ -72,12 +72,9 @@
 		width: max-content;
 	}
 
-	.overflow-bytes {
-		margin-left: 1px;
-	}
 	.overflow {
 		background: #222;
-		outline: 2px solid #000;
+		border: 1px solid #000;
 		height: 2rem;
 		line-height: 2rem;
 	}
