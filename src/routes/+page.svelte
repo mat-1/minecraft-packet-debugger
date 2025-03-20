@@ -101,8 +101,6 @@
 			} else nestedHistory.push(item)
 		}
 
-		console.log('nestedHistory', nestedHistory)
-
 		return nestedHistory
 	}
 
@@ -112,8 +110,7 @@
 	let data
 	$: {
 		let buf = Buffer.from(buffer.buffer)
-		console.log('lengthPrefixed', lengthPrefixed)
-		if (lengthPrefixed) {
+		if (lengthPrefixed && dataKind === 'packet') {
 			const readVarInt = varint[0]
 			try {
 				const varintResult = readVarInt(buf, 0)
