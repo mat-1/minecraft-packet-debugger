@@ -115,7 +115,7 @@ function readContainer(buffer, offset, typeArgs, context, history: any[]) {
 			console.log(type, 'value', readResults)
 
 			let data
-			if (/^varint|[ui]\d+|string|nbtTagName$/.test(innerTypeName))
+			if (/^varint|[ui]\d+|string|nbtTagName|UUID$/.test(innerTypeName))
 				data = { offset, value: JSON.stringify(readResults.value) }
 			else if (/^tag|nbtMapper|type$/.test(innerTypeName) && typeof readResults.value !== 'object')
 				data = { offset, value: readResults.value }

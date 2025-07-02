@@ -1,7 +1,7 @@
 'use strict'
 
 import * as pnbt from '../nbt/nbt'
-import * as uuid from 'uuid'
+import * as uuid from './uuid'
 import gzip from 'gzip-js'
 import { types as protoTypes, utils } from '../protodef'
 const [readVarInt, writeVarInt, sizeOfVarInt] = protoTypes.varint
