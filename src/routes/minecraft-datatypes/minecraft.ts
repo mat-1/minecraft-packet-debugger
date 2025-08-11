@@ -164,7 +164,7 @@ function sizeOfRestBuffer(value) {
 	return value.length
 }
 
-function readEntityMetadata(buffer, offset, { type, endVal }) {
+function readEntityMetadata(buffer, offset, { type, endVal }, _context, history: any[]) {
 	let cursor = offset
 	const metadata = []
 	let item
@@ -179,7 +179,7 @@ function readEntityMetadata(buffer, offset, { type, endVal }) {
 				size: cursor + 1 - offset
 			}
 		}
-		const results = this.read(buffer, cursor, type, {})
+		const results = this.read(buffer, cursor, type, {}, history)
 		metadata.push(results.value)
 		cursor += results.size
 	}
